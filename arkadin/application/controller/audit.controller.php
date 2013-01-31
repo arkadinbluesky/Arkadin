@@ -38,8 +38,8 @@ class audit extends controller
 			{
 				while ( ($file = readdir($dh)) !== false )
 				{
-					//echo "filename: $file : filetype: " . filetype($dir . $file) . "\n";
-					//echo "filename: " . $file . "\n";
+//echo "filename: $file : filetype: " . filetype($dir . $file) . "\n";
+//echo "filename: " . $file . "\n";
 
 					echo "gggg" . $dir . $file . "---------------\n";
 
@@ -142,7 +142,6 @@ class audit extends controller
 				continue;
 			}
 
-
 			mssql_select_db("ARKADIN_AUDIT");
 
 			$sql2 = "SELECT [name],  [xtype]  FROM [ARKADIN_AUDIT].[dbo].[sysobjects] WHERE xtype='U' order by name";
@@ -177,7 +176,7 @@ class audit extends controller
 						case 'int':
 						case 'bit':
 							$sql4 .= "`_" . $ob3->COLUMN_NAME . "` int(11) NULL";
-							//$sql4 .= "`" . $ob3->COLUMN_NAME . "` varchar(100)";
+//$sql4 .= "`" . $ob3->COLUMN_NAME . "` varchar(100)";
 							break;
 
 						case 'nvarchar':
@@ -207,7 +206,7 @@ class audit extends controller
 					$sql4 .= ",\n";
 				}
 
-				//$sql4 = substr($sql4,0,-2);
+//$sql4 = substr($sql4,0,-2);
 				$sql4 .= "functional_key char(40),\n";
 				$sql4 .= "PRIMARY KEY (`id`),\n";
 				$sql4 .= "UNIQUE KEY (`_ID_RUN`,`functional_key`),\n";
@@ -220,7 +219,7 @@ class audit extends controller
 
 				echo $sql4;
 
-				//echo $ob2->name . "\n";
+//echo $ob2->name . "\n";
 			}
 		}
 	}
@@ -263,6 +262,7 @@ class audit extends controller
 
 
 				$sql = "SELECT count(1) FROM ARKADIN_AUDIT..[" . $ob2->name . "]";
+
 
 
 
@@ -349,6 +349,7 @@ class audit extends controller
 		}
 	}
 
+	//deprecated
 	function cleanup()
 	{
 		$this->view = false;
@@ -367,6 +368,7 @@ class audit extends controller
 		}
 	}
 
+//deprecated
 	function import()
 	{
 		$this->view = false;
@@ -410,7 +412,7 @@ class audit extends controller
 
 					while ( substr($buffer, -3, 2) != "||" )
 					{
-						//echo "hmÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¹".substr($buffer, -2);
+						//echo "hmÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹".substr($buffer, -2);
 						//die();
 
 						$buffer = $buffer . fgets($fp, 4096);
@@ -505,123 +507,16 @@ class audit extends controller
 
 	function detail($param)
 	{
+
+
+
+
 		$this->layout_name = "admin";
 		$this->title = $param[0];
 		$this->ariane = '> Dashboard > <a href="' . LINK . 'audit/dashboardv1/">Audit V1</a> > ' . $this->title;
 
-		$data = array();
+
 		$_SQL = Singleton::getInstance(SQL_DRIVER);
-
-		if ( $_SERVER['REQUEST_METHOD'] == 'POST' )
-		{
-			if ( !empty($_POST['filter']) )
-			{
-				$ret = array();
-				$i = 0;
-
-
-				foreach ( $_POST['filter'] as $var )
-				{
-					foreach ( $var as $key => $val )
-					{
-						$ret[] = "filter:" . $key . "-" . $i . ":" . urlencode($val);
-					}
-					$i++;
-				}
-
-				$ret[] = "filter:nbrows:" . $i;
-				$params = implode("/", $ret);
-
-
-				$filter = json_encode($_POST['filter']);
-
-				header("location: " . LINK . "audit/detail/" . $param[0] . "/" . $params . "/query:" . $filter);
-				exit;
-			}
-
-
-			/*
-			  if ( !empty($_POST['field-to-update']) )
-			  {
-			  $_POST['field-to-update'] = mb_substr($_POST['field-to-update'], 0, -1);
-
-			  $data_to_update = explode(";", $_POST['field-to-update']);
-
-			  foreach ( $data_to_update as $key )
-			  {
-			  $key_extrated = substr($key, 1);
-
-			  $data['audit_reporting']['table'] = $param[0];
-			  $data['audit_reporting']['functional_key'] = $key_extrated;
-			  $data['audit_reporting']['date_created'] = date('c');
-
-
-
-			  $sql = "REPLACE INTO audit_reporting SET `table`= '" . $_SQL->sql_real_escape_string($param[0]) . "',
-			  functional_key= '" . $key_extrated . "',
-			  date_created=	now(),
-			  id_run = " . ID_RUN . ",
-			  infos = '" . $_SQL->sql_real_escape_string($_POST[$key]) . "'";
-
-			  $_SQL->sql_query($sql);
-			  }
-			  } */
-		}
-
-		(empty($_GET['page'])) ? $data['page'] = 1 : $data['page'] = $_GET['page'];
-
-
-
-		/*
-		  $sql1 = "SELECT * ";
-		  $sql2 = "SELECT count(1) as cpt ";
-		  $sql = " FROM `capgemini_audit_" . $param[0] . "` WHERE _ID_RUN =2 ";
-
-		  $res = $GLOBALS['_SQL']->sql_query($sql2 . $sql);
-		  $data['count'] = $GLOBALS['_SQL']->sql_to_array($res);
-
-
-		  $limit = "";
-		  if ( floor($data['count'][0]['cpt'] / AUDIT_ELEM_PER_PAGE) > 0 )
-		  {
-		  include_once(LIB . "pagination.lib.php");
-
-		  $pagination = new pagination(LINK . __CLASS__ . '/' . __FUNCTION__ . '/' . $param[0], $data['page'], $data['count'][0]['cpt'], AUDIT_ELEM_PER_PAGE, AUDIT_NB_PAGE_TO_DISPLAY_MAX);
-
-		  $tab = $pagination->get_sql_limit();
-		  $pagination->set_alignment("left");
-		  $pagination->set_invalid_page_number_text(__("Please input a valid page number!"));
-		  $pagination->set_pages_number_text(__("pages of"));
-		  $pagination->set_go_button_text(__("Go"));
-		  $pagination->set_first_page_text("Ã‚Â« " . __("First"));
-		  $pagination->set_last_page_text(__("Last") . " Ã‚Â»");
-		  $pagination->set_next_page_text("Ã‚Â»");
-		  $pagination->set_prev_page_text("Ã‚Â«");
-		  $data['pagination'] = $pagination->print_pagination();
-
-		  $limit = " LIMIT " . $tab[0] . "," . $tab[1] . " ";
-		  $data['i'] = $tab[0] + 1;
-		  //*****************************pagination end
-		  }
-
-		  $res2 = $GLOBALS['_SQL']->sql_query($sql1 . $sql . $limit);
-
-		  $nb_fields = mysql_num_fields($res2);
-
-		  for ( $i = 3; $i + 1 < $nb_fields; $i++ )
-		  {
-		  $data['field'][] = substr($_SQL->sql_field_name($res2, $i), 1);
-		  }
-
-		  $data['detail'] = $_SQL->sql_to_array($res2);
-
-		  $sql3 = "SELECT * FROM audit_reporting WHERE `table` = '" . $_SQL->sql_real_escape_string($param[0]) . "'";
-		  $res3 = $GLOBALS['_SQL']->sql_query($sql3);
-
-		  while ( $ob3 = $_SQL->sql_fetch_object($res3) )
-		  {
-		  $data['reporting'][$ob3->functional_key] = $ob3->infos;
-		  } */
 
 		$sql = "SELECT * FROM data_dictionary_server where id=1";
 		$res = $_SQL->sql_query($sql);
@@ -637,30 +532,116 @@ class audit extends controller
 			}
 
 			mssql_select_db("ARKADIN_AUDIT");
+		}
 
-			$sql = "SELECT TOP 1 * FROM [" . $param[0] . "] WHERE ID_RUN =2 ";
-			$res2 = mssql_query($sql);
+		$data = array();
 
-			$nb_fields = mssql_num_fields($res2);
 
-			for ( $i = 3; $i + 1 < $nb_fields; $i++ )
+		if ( $_SERVER['REQUEST_METHOD'] == 'POST' )
+		{
+
+			if ( !empty($_POST['data']['type']) )
 			{
-				$field = mssql_field_name($res2, $i);
 
-				if ( $field == 'IsCorrected' )
+
+				$filter = $this->parse_filter($_GET['query']);
+
+
+				$sql = "DELETE [AUDIT_BLUESKY_FOLLOWED]
+					FROM [AUDIT_BLUESKY_FOLLOWED] a
+					INNER JOIN [HASH_" . $param[0] . "] b ON a.HASH = b.HASH
+					INNER JOIN [" . $param[0] . "]  c ON b.OID = c.OID
+					WHERE [TABLE] = '" . $param[0] . "' " . $filter . " 
+						";
+
+				echo $sql;
+				mssql_query($sql);
+
+				$sql = "INSERT INTO [AUDIT_BLUESKY_FOLLOWED] ([HASH],[ID_RUN],[STATUS],[TABLE], [DATE],[COMMENT])
+					SELECT b.HASH, " . ID_RUN . ", " . $_POST['data']['type'] . ", '" . $param[0] . "','" . date("Y-m-d H:i:s") . "' ,'" . $_POST['data']['text'] . "'
+					FROM [" . $param[0] . "] a
+					INNER JOIN [HASH_" . $param[0] . "] b ON a.OID = b.OID
+					WHERE a.ID_RUN = " . ID_RUN . " " . $filter;
+
+				echo $sql;
+
+
+				mssql_query($sql);
+				/* . " AND [HASH] NOT IN 
+				  (SELECT HASH
+				  FROM [AUDIT_BLUESKY_FOLLOWED]
+				  WHERE [TABLE] = '" . $param[0] . "')"; */
+
+				foreach ( $_GET['filter'] as $key => $val )
 				{
-					continue;
+					$ret[] = "filter:" . $key . ":" . urlencode($val);
 				}
 
-				$gg = array();
-
-				$gg['id'] = $field;
-				$gg['libelle'] = $field;
+				$params = implode("/", $ret);
 
 
-				$data['field'][] = $gg;
+				$url = LINK . "audit/detail/" . $param[0] . "/" . $params . "/query:" . $_GET['query'];
+
+				//header("location: " . LINK . "audit/detail/" . $param[0] . "/" . $params . "/query:" . $_GET['query']);
+				//exit;
+			}
+
+			if ( !empty($_POST['filter']) )
+			{
+				$ret = array();
+				$i = 0;
+
+				foreach ( $_POST['filter'] as $var )
+				{
+					foreach ( $var as $key => $val )
+					{
+						$ret[] = "filter:" . $key . "-" . $i . ":" . urlencode($val);
+					}
+					$i++;
+				}
+
+				$ret[] = "filter:nbrows:" . $i;
+				$params = implode("/", $ret);
+
+				//W3siZmllbGQiOiJBY2NvdW50TmFtZSIsIm9wZXJhdG9yIjoiMSIsInNlYXJjaCI6ImR0dXgifV0=
+
+				$filter2 = json_encode($_POST['filter']);
+
+				$filter = base64_encode($filter2);
+
+				header("location: " . LINK . "audit/detail/" . $param[0] . "/" . $params . "/query:" . $filter);
+				exit;
 			}
 		}
+
+		(empty($_GET['page'])) ? $data['page'] = 1 : $data['page'] = $_GET['page'];
+
+
+
+
+		$sql = "SELECT TOP 1 * FROM [" . $param[0] . "] WHERE ID_RUN =2 ";
+		$res2 = mssql_query($sql);
+
+		$nb_fields = mssql_num_fields($res2);
+
+		for ( $i = 3; $i + 1 < $nb_fields; $i++ )
+		{
+			$field = mssql_field_name($res2, $i);
+
+			if ( $field == 'IsCorrected' )
+			{
+				continue;
+			}
+
+			$gg = array();
+
+			$gg['id'] = $field;
+			$gg['libelle'] = $field;
+
+
+			$data['field'][] = $gg;
+		}
+
 
 		$data['operator'][0]['id'] = 1;
 		$data['operator'][0]['libelle'] = "= ?";
@@ -676,6 +657,9 @@ class audit extends controller
 
 
 		$data['table'] = $param[0];
+
+		$data['list_id_run'] = $this->get_list_id_run();
+
 		$this->set('data', $data);
 
 		$this->javascript = array("jquery-1.8.0.min.js", "jquery.easyui.min.js", "datagrid-scrollview.js");
@@ -688,6 +672,7 @@ class audit extends controller
 							url:'" . LINK . "audit/get_scroll/" . $data['table'] . "' 
 						});
 						
+
 						
 				}";
 
@@ -838,7 +823,7 @@ class audit extends controller
 
 			while ( $ob2 = mssql_fetch_object($res2) )
 			{
-				if ( !strstr($ob2->name, "-") )
+				if ( !strstr($ob2->name, "-") && !strstr($ob2->name, "_V2") )
 				{
 					continue;
 				}
@@ -861,7 +846,12 @@ class audit extends controller
 				$res4 = mssql_query($sql4);
 				while ( $ob4 = mssql_fetch_object($res4) )
 				{
-					if ( in_array($ob4->COLUMN_NAME, array("OID", "ID_RUN", "IsCorrected", "CorrectionComment")) )
+					if ( in_array($ob4->COLUMN_NAME, array("OID", "ID_RUN", "IsCorrected", "CorrectionComment", "AuditStatus", "Comment", "AUDIT_OID")) )
+					{
+						continue;
+					}
+
+					if ( strstr($ob4->COLUMN_NAME, "Error_") )
 					{
 						continue;
 					}
@@ -892,9 +882,20 @@ class audit extends controller
 				  SELECT OID, ID_RUN, SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('MD5', " . implode("+", $fields) . ")), 3, 32)
 				  FROM [" . $ob2->name . "]
 				  end"; */
+
+				if ( strstr($ob2->name, "_V2") )
+				{
+					$oid = "AUDIT_OID";
+				}
+				else
+				{
+					$oid = "OID";
+				}
+
+
 				$sql3 = "IF object_id('HASH_" . $ob2->name . "') is null
 begin
-	SELECT [OID], [ID_RUN], [HASH] = CAST(SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('MD5', " . implode("+", $fields) . ")), 3, 32) as VARCHAR(32))
+	SELECT [" . $oid . "], [ID_RUN], [HASH] = CAST(SUBSTRING(master.dbo.fn_varbintohexstr(HashBytes('MD5', " . implode("+", $fields) . ")), 3, 32) as VARCHAR(32))
 	INTO [HASH_" . $ob2->name . "]
 	FROM [" . $ob2->name . "]
 end";
@@ -952,7 +953,7 @@ begin
   DROP TABLE [" . $ob2->name . "]
 end
 ";
-//echo "\n______________________________\n".$sql3 . "\n______________________________\n";
+				//echo "\n______________________________\n".$sql3 . "\n______________________________\n";
 				mssql_query($sql3);
 			}
 		}
@@ -996,9 +997,7 @@ end
 
 				$sql3 = "CREATE INDEX [idxHASH_" . $ob2->name . "hash] ON [HASH_" . $ob2->name . "] (HASH)";
 
-
 				echo "CREATE INDEX : [HASH_" . $ob2->name . "]\n";
-
 
 				$cmd = 'sqsh -S10.102.28.5 -DARKADIN_AUDIT -Usa -C"' . $sql3 . '" -P3fN4uL';
 				shell_exec($cmd);
@@ -1061,6 +1060,8 @@ function formatProgress(value){
 		  }
 		  }
 		  });  "; */
+
+		$data['list_id_run'] = $this->get_list_id_run();
 
 		$this->set('data', $data);
 	}
@@ -1227,6 +1228,9 @@ function formatProgress(value){
 
 	function get_scroll($param)
 	{
+
+		$filter = $this->parse_filter($param[1]);
+
 		(empty($_POST['sort'])) ? $sort = "OID" : $sort = $_POST['sort'];
 		(empty($_POST['order'])) ? $order = "asc" : $order = $_POST['order'];
 		(empty($_POST['rows'])) ? $rows = "50" : $rows = $_POST['rows'];
@@ -1255,7 +1259,11 @@ function formatProgress(value){
 			mssql_select_db("ARKADIN_AUDIT");
 
 			//$sql2 = "SELECT o.name as name, max(i.rowcnt) as cpt FROM sysobjects o, sysindexes i WHERE	o.name = '" . $param[0] . "' AND i.id = o.id AND o.type = 'U' group by o.name";
-			$sql2 = "SELECT count(1) as cpt FROM [" . $param[0] . "] WHERE ID_RUN =2";
+			$sql2 = "SELECT count(1) as cpt FROM [" . $param[0] . "] WHERE ID_RUN =2 " . $filter;
+
+
+
+			//echo $sql2;
 
 			$res2 = mssql_query($sql2);
 
@@ -1267,57 +1275,244 @@ function formatProgress(value){
 			}
 
 
-			if ( $start < $output['total'] )
-			{
+			//if ( $start < $output['total'] && empty($filter))
+			//{
 
-				$sql3 = "SELECT TOP " . AUDIT_ELEM_PER_PAGE . " a.*,b.[HASH] FROM [" . $param[0] . "] a
+			$sql3 = "SELECT TOP " . AUDIT_ELEM_PER_PAGE . " a.*,b.[HASH] FROM [" . $param[0] . "] a
 			INNER JOIN [HASH_" . $param[0] . "] b ON a.OID = b.OID WHERE a.ID_RUN =2 ";
 
-				$sql3 = "SELECT * FROM ( 
+			$sql3 = "SELECT * FROM ( 
          SELECT TOP " . $rows . " * FROM ( 
          SELECT TOP " . $start . " a.*,b.[HASH],c.[COMMENT],c.[STATUS]
 		FROM [" . $param[0] . "] a
 		INNER JOIN [HASH_" . $param[0] . "] b ON a.OID = b.OID
 		LEFT JOIN [AUDIT_BLUESKY_FOLLOWED] c ON c.HASH = b.HASH and c.ID_RUN = 2 AND c.[TABLE] = '" . $param[0] . "'
-		WHERE a.ID_RUN =2 ";
+		WHERE a.ID_RUN =2 " . $filter;
 
-				if ( $order == "asc" )
-				{
-					$sql3 .= " ORDER BY " . $sort . " asc
+			if ( $order == "asc" )
+			{
+				$sql3 .= " ORDER BY " . $sort . " asc
 				) AS tbl1 ORDER BY " . $sort . " desc 
         ) AS tbl2 ORDER BY " . $sort . " asc ";
-				}
-				else
-				{
-					$sql3 .= " ORDER BY " . $sort . " desc
+			}
+			else
+			{
+				$sql3 .= " ORDER BY " . $sort . " desc
 				 ) AS tbl1 ORDER BY " . $sort . " asc 
         ) AS tbl2 ORDER BY " . $sort . " desc ";
-				}
+			}
 
 
-				//echo $sql3;
+			//echo $sql3;
 
 
-				$res3 = mssql_query($sql3);
+			$res3 = mssql_query($sql3);
 
 
-				//$hash = array();
-				while ( $tab = mssql_fetch_array($res3, MSSQL_ASSOC) )
+			//$hash = array();
+			while ( $tab = mssql_fetch_array($res3, MSSQL_ASSOC) )
+			{
+				unset($tab['IsCorrected']);
+				unset($tab['CorrectionComment']);
+				unset($tab['OID']);
+				unset($tab['ID_RUN']);
+
+
+				$type = array('Not evalued', 'Accepted', 'To be corrected');
+
+
+				$status = $tab['STATUS'];
+				$tab['STATUS'] = '<select name="data[status][' . $tab['HASH'] . ']" style="margin:0;">';
+
+				$i = 1;
+				foreach ( $type as $var )
 				{
-					unset($tab['IsCorrected']);
-					unset($tab['CorrectionComment']);
-					unset($tab['OID']);
-					unset($tab['ID_RUN']);
 
-					$output['rows'][] = $tab;
-					//$hash[] = $tab['HASH'];
+					if ( $status == $i )
+					{
+						$selected = "selected";
+					}
+					else
+					{
+						$selected = "";
+					}
+
+					$tab['STATUS'] .= '<option value="' . $i . '" ' . $selected . '>' . $var . '</option>';
+					$i++;
 				}
+
+				$tab['STATUS'] .= '</select>';
+
+
+
+				$output['rows'][] = $tab;
+
+
+
+				//$hash[] = $tab['HASH'];
 			}
 		}
+		//}
 
 		echo json_encode($output);
 	}
 
+	function parse_filter($param)
+	{
+
+		$query = json_decode(base64_decode($param), true);
+
+		$filter = '';
+		if ( is_array($query) )
+		{
+			//debug($query);
+
+
+			$where = array();
+			foreach ( $query as $line )
+			{
+
+				if ( empty($line['search']) )
+				{
+					continue;
+				}
+				if ( empty($line['operator']) )
+				{
+					continue;
+				}
+				if ( empty($line['field']) )
+				{
+					continue;
+				}
+
+				if ( $line['field'] != -1 && $line['operator'] != -1 && !empty($line['search']) )
+				{
+					switch ( $line['operator'] )
+					{
+						case '1':
+							$operator = "=";
+							break;
+						case '2':
+							$operator = "like";
+							break;
+						case '3':
+							$operator = "<";
+							break;
+						case '4':
+							$operator = ">";
+							break;
+						case '5':
+							$operator = "!=";
+							break;
+					}
+
+					$where[] = " AND [" . $line['field'] . "] " . $operator . " '" . $line['search'] . "'  ";
+				}
+			}
+
+			$filter .= implode(" ", $where);
+		}
+
+		return $filter;
+	}
+
+	private function get_list_id_run()
+	{
+		$_SQL = Singleton::getInstance(SQL_DRIVER);
+		$sql = "SELECT * FROM data_dictionary_server where id=1";
+		$res = $_SQL->sql_query($sql);
+
+		while ( $ob = $_SQL->sql_fetch_object($res) )
+		{
+
+			$db = @mssql_connect($ob->ip, $ob->login, $ob->password);
+
+			if ( !$db )
+			{
+				echo("ERROR : impossible to connect to " . $ob->ip . " - (mx : " . $ob->mx . ")\n");
+				continue;
+			}
+
+			mssql_select_db("ARKADIN_AUDIT");
+
+			$sql = "SELECT DISTINCT ID_RUN from ARKA_AUDIT_MONITORING";
+			$res = mssql_query($sql);
+
+			$out = array();
+			while ( $ob = mssql_fetch_object($res) )
+			{
+				$out[] = $ob->ID_RUN;
+			}
+
+			return $out;
+		}
+	}
+
+	function create_index_on_error_filter()
+	{
+
+		$this->view = false;
+		$this->layout_name = false;
+
+		$_SQL = Singleton::getInstance(SQL_DRIVER);
+
+		$sql = "SELECT * FROM data_dictionary_server where id=1";
+		$res = $_SQL->sql_query($sql);
+		while ( $ob = $_SQL->sql_fetch_object($res) )
+		{
+			$db = @mssql_connect($ob->ip, $ob->login, $ob->password);
+
+			if ( !$db )
+			{
+				echo("ERROR : impossible to connect to " . $ob->ip . ")\n");
+				continue;
+			}
+
+			mssql_select_db("ARKADIN_AUDIT");
+			$sql2 = "SELECT [name], [xtype]  FROM [ARKADIN_AUDIT].[dbo].[sysobjects] WHERE xtype='U' order by name";
+			$res2 = mssql_query($sql2);
+
+			$i=0;
+			while ( $ob2 = mssql_fetch_object($res2) )
+			{
+				if ( substr($ob2->name, -3, 3) != "_V2" )
+				{
+					continue;
+				}
+
+				if ( strstr($ob2->name, "HASH_") )
+				{
+					continue;
+				}
+
+				$sql4 = "SELECT COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" . $ob2->name . "'";
+
+				$res4 = mssql_query($sql4);
+				while ( $ob4 = mssql_fetch_object($res4) )
+				{
+					if ( substr($ob4->COLUMN_NAME, 0,6) == "Error_" )
+					{
+						$i++;
+						$sql = "CREATE NONCLUSTERED INDEX [idx_".$ob2->name."_".$ob4->COLUMN_NAME."] ON [".$ob2->name."]([".$ob4->COLUMN_NAME."]) WHERE [".$ob4->COLUMN_NAME."]= 1";
+						
+						echo $i." [".date("Y-m-d H:i:s")."] ".$sql."\n";
+
+						$cmd = 'sqsh -S'.$ob->ip.' -DARKADIN_AUDIT -U'.$ob->login.' -C"' . $sql . '" -P'.$ob->password;
+						shell_exec($cmd);
+					}
+				}
+			}
+		}
+
+		
+		
+	}
+
+	function delete_index_on_error_filter()
+	{
+		
+	}
+	
 	function dashboardv2()
 	{
 		$_SQL = Singleton::getInstance(SQL_DRIVER);
